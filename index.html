@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Achados e Perdidos</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Trebuchet MS', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1a1f0f, #556b2f);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+    }
+
+    .container {
+      background-color: white;
+      padding: 40px 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+      width: 90%;
+      max-width: 500px;
+    }
+
+    h1 {
+      background-color: #baff29;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #00000055;
+      margin-bottom: 30px;
+      font-family: 'Franklin Gothic Medium', sans-serif;
+      color: #214900;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      margin-bottom: 20px;
+      font-size: 16px;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    input:focus, textarea:focus {
+      border: 1px solid #4e7300;
+    }
+
+    textarea {
+      resize: none;
+      border-radius: 12px;
+      height: 100px;
+    }
+
+    button {
+      background-color: #214900;
+      color: white;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 17px;
+      width: 100%;
+      margin-bottom: 10px;
+      box-shadow: 0 5px 10px #00000050;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #3c6e00;
+    }
+
+    #resultado {
+      margin-top: 20px;
+      text-align: left;
+      font-size: 16px;
+      background-color: #f1ffe0;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 8px #00000033;
+    }
+
+    #resultado img {
+      max-width: 100%;
+      margin-top: 10px;
+      border-radius: 10px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- TELA DE LOGIN -->
+    <div id="tela-login">
+      <h1>Login</h1>
+      <input type="text" id="login-usuario" placeholder="Usuário" required>
+      <input type="password" id="login-senha" placeholder="Senha" required>
+      <button onclick="fazerLogin()">Entrar</button>
+      <button onclick="mostrarTela('cadastro-usuario')">Cadastrar-se</button>
+    </div>
+
+    <!-- TELA DE CADASTRO DE USUÁRIO -->
+    <div id="tela-cadastro-usuario" class="hidden">
+      <h1>Cadastro de Usuário</h1>
+      <input type="text" id="novoUsuario" placeholder="Novo usuário" required>
+      <input type="password" id="novaSenha" placeholder="Nova senha" required>
+      <button onclick="cadastrarUsuario()">Cadastrar</button>
+      <button onclick="mostrarTela('login')">Voltar</button>
+    </div>
+
+    <!-- MENU PRINCIPAL -->
+    <div id="tela-menu" class="hidden">
+      <h1>Achados e Perdidos</h1>
+      <button onclick="mostrarTela('cadastro')">Cadastrar Item</button>
+      <button onclick="mostrarTela('busca')">Procurar Item</button>
+      <button onclick="mostrarTela('login')">Sair</button>
+    </div>
+
+    <!-- CADASTRO DE ITENS -->
+    <div id="tela-cadastro" class="hidden">
+      <h1>Cadastrar Item</h1>
+      <form id="formCadastro">
+        <input type="hidden" id="itemIndex">
+        <input type="text" id="nomeItem" placeholder="Nome do Item" required>
+        <input type="text" id="local" placeholder="Local perdido/encontrado" required>
+        <textarea id="descricao" placeholder="Descrição" required></textarea>
+        <input type="file" id="imagemItem" accept="image/*"><br>
+        <button type="submit" id="botaoSalvar">Cadastrar</button>
+        <button type="button" onclick="mostrarTela('menu')">Voltar</button>
+      </form>
+    </div>
+
+    <!-- BUSCA DE ITENS -->
+    <div id="tela-busca" class="hidden">
+      <h1>Procurar Item</h1>
+      <input type="text" id="buscar" placeholder="Digite o nome do item">
+      <button onclick="buscarItem()">Buscar</button>
+      <div id="resultado"></div>
+      <button onclick="mostrarTela('menu')">Voltar</button>
+    </div>
+  </div>
+
+  <script>
+    const storage = sessionStorage;
+
+    function mostrarTela(tela) {
+      const telas = ["tela-login", "tela-cadastro-usuario", "tela-menu", "tela-cadastro", "tela-busca"];
+      telas.forEach(id => document.getElementById(id).classList.add("hidden"));
+      document.getElementById("tela-" + tela).classList.remove("hidden");
+    }
+
+    function cadastrarUsuario() {
+      const usuario = document.getElementById("novoUsuario").value;
+      const senha = document.getElementById("novaSenha").value;
+
+      if (usuario && senha) {
+        const usuarios = JSON.parse(storage.getItem("usuarios")) || [];
+        const existe = usuarios.find(u => u.usuario === usuario);
+
+        if (existe) {
+          alert("Usuário já cadastrado!");
+        } else {
+          usuarios.push({ usuario, senha });
+          storage.setItem("usuarios", JSON.stringify(usuarios));
+          alert("Usuário cadastrado com sucesso!");
+          mostrarTela("login");
+        }
+      } else {
+        alert("Preencha todos os campos!");
+      }
+    }
+
+    function fazerLogin() {
+      const usuario = document.getElementById("login-usuario").value;
+      const senha = document.getElementById("login-senha").value;
+
+      const usuarios = JSON.parse(storage.getItem("usuarios")) || [];
+      const validado = usuarios.find(u => u.usuario === usuario && u.senha === senha);
+
+      if (validado) {
+        mostrarTela("menu");
+      } else {
+        alert("Usuário ou senha inválidos.");
+      }
+    }
+
+    document.getElementById("formCadastro").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const nomeItem = document.getElementById("nomeItem").value;
+      const local = document.getElementById("local").value;
+      const descricao = document.getElementById("descricao").value;
+      const index = document.getElementById("itemIndex").value;
+      const file = document.getElementById("imagemItem").files[0];
+      const reader = new FileReader();
+
+      reader.onloadend = function () {
+        const imagem = reader.result;
+
+        let itens = JSON.parse(storage.getItem("itensPerdidos")) || [];
+        const novoItem = { nomeItem, local, descricao, imagem };
+
+        if (index === "") {
+          itens.push(novoItem);
+        } else {
+          itens[index] = novoItem;
+        }
+
+        storage.setItem("itensPerdidos", JSON.stringify(itens));
+        alert("Item salvo com sucesso!");
+        document.getElementById("formCadastro").reset();
+        document.getElementById("itemIndex").value = "";
+        document.getElementById("botaoSalvar").innerText = "Cadastrar";
+        mostrarTela("menu");
+      };
+
+      if (file) {
+        reader.readAsDataURL(file);
+      } else {
+        reader.onloadend();
+      }
+    });
+
+    function buscarItem() {
+      const termo = document.getElementById("buscar").value.toLowerCase();
+      const resultado = document.getElementById("resultado");
+      const itens = JSON.parse(storage.getItem("itensPerdidos")) || [];
+
+      const encontrados = itens
+        .map((item, index) => ({ ...item, index }))
+        .filter(item => item.nomeItem.toLowerCase().includes(termo));
+
+      resultado.innerHTML = "";
+
+      if (encontrados.length > 0) {
+        encontrados.forEach(item => {
+          resultado.innerHTML += `
+            <div style="margin-top:10px;padding:10px;border:1px solid #ccc;border-radius:8px;">
+              <strong>Item:</strong> ${item.nomeItem}<br>
+              <strong>Local:</strong> ${item.local}<br>
+              <strong>Descrição:</strong> ${item.descricao}<br>
+              ${item.imagem ? `<img src="${item.imagem}" alt="Imagem do item">` : ''}
+              <br>
+              <button onclick="editarItem(${item.index})">Editar</button>
+            </div>`;
+        });
+      } else {
+        resultado.innerHTML = "<p>Nenhum item encontrado.</p>";
+      }
+    }
+
+    function editarItem(index) {
+      const itens = JSON.parse(storage.getItem("itensPerdidos")) || [];
+      const item = itens[index];
+
+      document.getElementById("nomeItem").value = item.nomeItem;
+      document.getElementById("local").value = item.local;
+      document.getElementById("descricao").value = item.descricao;
+      document.getElementById("itemIndex").value = index;
+      document.getElementById("botaoSalvar").innerText = "Salvar Edição";
+
+      mostrarTela("cadastro");
+    }
+
+    mostrarTela("login");
+  </script>
+</body>
+</html>
